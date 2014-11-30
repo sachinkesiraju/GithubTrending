@@ -37,33 +37,21 @@ app.get('/trending', function(req, res){
             repository.url = 'https://github.com/' + repository.owner + '/' + repository.title.split('/')[1];
             repository.language = language.length === 3 ? language[0].trim() : '';
             repository.starsToday = starsToday.split(/\s+/)[0];
-            repository.totalStars = getStars(repository.url);
-            console.log('received total stars '+repository.totalStars);
+            var metadata = {
+                name: repository.title,
+                owner: repository.owner,
+                description: repository.description,
+                url: repository.url,
+                language: repository.language,
+                starsToday: repository.starsToday
+            };
 
-            repos.push(repository);
+            repos.push(metadata);
         });
-        }
-    })
-})
-
-function getStars(url)
-{
-    console.log('url being sent '+url);
-    var totalStars;
-    request(url, function(error, response, html)
-     {
-        console.log('response  error '+response, +error);
-        if(!error)
-        {
-            var $ = cheerio.load(html);
-            var $repo = $(this);
-            totalStars = $repo.find('social-count js-social-count a').text();
-            console.log('total stars '+totalStars);
+            console.log(repos[0]);
         }
     });
-
-    return totalStars;
-}
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

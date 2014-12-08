@@ -14,7 +14,14 @@ var app = express();
 
 app.get('/trending', function(req, res){
     //Scrape the github trending site
-    var url = 'https://github.com/trending';
+    if(req.query.languages)
+    {
+        url = 'https://github.com/trending?l='+req.query.languages;
+    }
+    else
+    {
+        url = 'https://github.com/trending';
+    }
     var repos = [];
 
     request(url, function(error, response, html){
@@ -48,7 +55,7 @@ app.get('/trending', function(req, res){
 
             repos.push(metadata);
         });
-            console.log(repos[0]);
+            console.log(repos);
         }
     });
 })

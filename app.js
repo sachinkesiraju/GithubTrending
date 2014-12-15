@@ -56,6 +56,7 @@ app.get('/trending', function(req, res){
             repos.push(metadata);
         });
             console.log(repos);
+            res.send(JSON.stringify(repos));
         }
     });
 })

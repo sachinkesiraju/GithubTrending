@@ -6,23 +6,59 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var request = require('request');
 var cheerio = require('cheerio');
+var async = require('async');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
 
+var languagesURLs = [];
+
 app.get('/trending', function(req, res){
     //Scrape the github trending site
     if(req.query.languages)
     {
-        url = 'https://github.com/trending?l='+req.query.languages;
+        for(trendingLanguage in req.query.languages)
+        {
+            if(trendingLanguage === 'trending')
+            {
+                languagesURLs.push('https://github.com/trending');
+            }
+            else {
+                languagesURLs.push('https://github.com/trending?l='+req.query.languages[trendingLanguage]);
+            }
+        }
+        console.log('language urls '+languagesURLs);
+        async.mapSeries(languagesURLs, getRepos, function(err, results)
+        {
+            if(err)
+            {
+                console.log('error '+err);
+            }
+            else
+            {
+                console.log('all requests successful '+results);
+                var trendingReposToSend = [];
+                for(var i=0; i<results.length; i++)
+                {
+                    trendingReposToSend = trendingReposToSend.concat(results[i]);
+                }
+                res.send(JSON.stringify(trendingReposToSend));
+            }
+        });
     }
     else
     {
         url = 'https://github.com/trending';
+        var srepo = getRepos(url);
+        res.send(JSON.stringify(srepo));
     }
-    var repos = [];
+})
+
+function getRepos(url, done)
+{
+     var repos = [];
 
     request(url, function(error, response, html){
         if(!error) {
@@ -52,14 +88,14 @@ app.get('/trending', function(req, res){
                 language: repository.language,
                 starsToday: repository.starsToday
             };
-
             repos.push(metadata);
         });
             console.log(repos);
-            res.send(JSON.stringify(repos));
+            //return repos;
+            done(null, repos);
         }
     });
-})
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

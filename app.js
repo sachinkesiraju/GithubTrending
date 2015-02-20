@@ -56,6 +56,33 @@ app.get('/trending', function(req, res){
     }
 })
 
+app.get('/repo', function(req, res) {
+
+    if(req.query.repoName)
+    {
+        var detailUrl = 'https://github.com/'+req.query.repoName;
+        console.log('got url '+detailUrl);
+        request(detailUrl, function(error, response, html){
+        if(!error) {
+            var $ = cheerio.load(html);
+            var social = [];
+            $('a.social-count').each(function() {
+             var components = $(this).text();
+             social.push(components.trim());
+});
+            //return repos
+            var metadata = {
+                url: detailUrl,
+                watchers: social[0],
+                stars: social[1],
+                forks: social[2]
+            };
+            res.send(JSON.stringify(metadata));
+        }
+    });
+    }
+})
+
 function getRepos(url, done)
 {
      var repos = [];
